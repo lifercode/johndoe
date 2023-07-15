@@ -1,0 +1,50 @@
+version: "3.5"
+
+services:
+
+  db:
+    container_name: db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: johndoe
+      POSTGRES_PASSWORD: johndoe-pass
+      POSTGRES_DB: johndoe-db
+    volumes:
+      - ./data:/data/postgres
+    networks:
+      - app-connect
+    ports:
+      - "5432:5432"
+
+  api:
+    build: ./api
+    image: node:16-alpine
+    container_name: api
+    # restart: always
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    networks:
+      - app-connect
+    working_dir: /usr/src/app
+    command: npm start
+
+  web:
+    build: ./web
+    image: node:16-alpine
+    container_name: web
+    restart: always
+    depends_on:
+      - api
+    ports:
+      - "3001:3001"
+    networks:
+      - app-connect
+    working_dir: /usr/app
+    command: npm run serve
+
+networks:
+  app-connect:
+    driver: bridge
